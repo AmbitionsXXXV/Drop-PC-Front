@@ -4,6 +4,7 @@ export default {
   theme: {
     extend: {}
   },
+  important: true,
   plugins: [require("@tailwindcss/typography")],
   corePlugins: {
     preflight: false
