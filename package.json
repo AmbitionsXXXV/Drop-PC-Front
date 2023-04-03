@@ -4,13 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --open",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint 'src/**/*.+(js|ts|jsx|tsx)' ",
     "format": "prettier --write 'src/**/*.+(js|ts|jsx|tsx|css|less|scss)'"
   },
   "dependencies": {
+    "@types/node": "^18.15.11",
+    "@ant-design/icons": "^5.0.1",
+    "@ant-design/pro-components": "^2.4.4",
     "antd": "^5.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -21,6 +24,7 @@
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
     "@vitejs/plugin-react-swc": "^3.0.0",
+    "@tailwindcss/typography": "^0.5.9",
     "autoprefixer": "^10.4.14",
     "eslint": "^8.36.0",
     "eslint-config-prettier": "^8.7.0",
