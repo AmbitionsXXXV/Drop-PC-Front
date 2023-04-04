@@ -14,36 +14,74 @@ import {
 } from "@ant-design/pro-components";
 import { Divider, message, Space, Tabs } from "antd";
 import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import "./index.module.less";
+import { LOGIN, SEND_CODE_MSG } from "@/graphql/auth";
+import { useMutation } from "@apollo/client";
+import { useTitle } from "@/hooks";
+import { AUTH_TOKEN } from "@/utils/constants";
+
+interface IValue {
+  tel: string;
+  code: string;
+  autoLogin: boolean;
+}
 
 type LoginType = "phone" | "account";
 
 const Login = () => {
+  const [run] = useMutation(SEND_CODE_MSG);
+  const [login] = useMutation(LOGIN);
+  const [params] = useSearchParams();
+  const nav = useNavigate();
   const [loginType, setLoginType] = useState<LoginType>("phone");
+
+  useTitle("登录");
+
+  const loginHandler = async (values: IValue) => {
+    const res = await login({
+      variables: values
+    });
+    if (res.data.login.code === 200) {
+      if (values.autoLogin) {
+        sessionStorage.setItem(AUTH_TOKEN, "");
+        localStorage.setItem(AUTH_TOKEN, res.data.login.data);
+      } else {
+        localStorage.setItem(AUTH_TOKEN, "");
+        sessionStorage.setItem(AUTH_TOKEN, res.data.login.data);
+      }
+      message.success(res.data.login.message);
+      nav(params.get("orgUrl") || "/");
+      return;
+    }
+    message.error(res.data.login.message);
+  };
+
   return (
-    <div className="bg-white h-[calc(100vh-48px)] m-[-24px]">
+    <div className="bg-white h-full m-[-24px] overflow-hidden">
       <LoginFormPage
+        initialValues={{ tel: "19357227510" }}
         backgroundImageUrl="https://gw.alipayobjects.com/zos/rmsportal/FfdJeJRQWjEeGTpqgBKj.png"
-        logo="https://github.githubassets.com/images/modules/logos_page/Octocat.png"
-        title="Github"
-        subTitle="全球最大的代码托管平台"
-        actions={
-          <div className="flex flex-col justify-center items-center">
-            <Divider plain>
-              <span className="text-gray-400 font-normal text-sm">其他登录方式</span>
-            </Divider>
-            <Space align="center" size={24}>
-              <div className="flex flex-col justify-center items-center h-10 w-10 border-spacing-1 border-solid border-gray-200 rounded-full">
-                <AlipayOutlined className="icon text-[#1677FF]" />
-              </div>
-              <div className="flex flex-col justify-center items-center h-10 w-10 border-spacing-1 border-solid border-gray-200 rounded-full">
-                <TaobaoOutlined className="icon text-[#FF6A10]" />
-              </div>
-              <div className="flex flex-col justify-center items-center h-10 w-10 border-spacing-1 border-solid border-gray-200 rounded-full">
-                <WeiboOutlined className="icon text-orange-400 hover:shadow-md" />
-              </div>
-            </Space>
-          </div>
-        }
+        logo="http://water-drop-assets.oss-cn-hangzhou.aliyuncs.com/images/henglogo.png"
+        onFinish={loginHandler}
+        // actions={
+        //   <div className="flex flex-col justify-center items-center">
+        //     <Divider plain>
+        //       <span className="text-gray-400 font-normal text-sm">其他登录方式</span>
+        //     </Divider>
+        //     <Space align="center" size={24}>
+        //       <div className="flex flex-col justify-center items-center h-10 w-10 border-spacing-1 border-solid border-gray-200 rounded-full">
+        //         <AlipayOutlined className="icon text-[#1677FF]" />
+        //       </div>
+        //       <div className="flex flex-col justify-center items-center h-10 w-10 border-spacing-1 border-solid border-gray-200 rounded-full">
+        //         <TaobaoOutlined className="icon text-[#FF6A10]" />
+        //       </div>
+        //       <div className="flex flex-col justify-center items-center h-10 w-10 border-spacing-1 border-solid border-gray-200 rounded-full">
+        //         <WeiboOutlined className="icon text-orange-400 hover:shadow-md" />
+        //       </div>
+        //     </Space>
+        //   </div>
+        // }
       >
         <Tabs
           centered
@@ -127,8 +165,17 @@ const Login = () => {
                   message: "请输入验证码！"
                 }
               ]}
-              onGetCaptcha={async () => {
-                message.success("获取验证码成功！验证码为：1234");
+              onGetCaptcha={async (tel: string) => {
+                const res = await run({
+                  variables: {
+                    tel
+                  }
+                });
+                if (res.data.sendCodeMsg.code === 200) {
+                  message.success(res.data.sendCodeMsg.message);
+                } else {
+                  message.error(res.data.sendCodeMsg.message);
+                }
               }}
             />
           </>
